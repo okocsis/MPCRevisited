@@ -1,15 +1,41 @@
 import UIKit
 import MultipeerConnectivity
 
+class ParkBenchTimer {
+    
+    let startTime:CFAbsoluteTime
+    var endTime:CFAbsoluteTime?
+    
+    init() {
+        startTime = CFAbsoluteTimeGetCurrent()
+    }
+    
+    func stop() -> CFAbsoluteTime {
+        endTime = CFAbsoluteTimeGetCurrent()
+        
+        return duration!
+    }
+    
+    var duration:CFAbsoluteTime? {
+        if let endTime = endTime {
+            return endTime - startTime
+        } else {
+            return nil
+        }
+    }
+}
+
+
+
 class ChatViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource {
 
-    @IBOutlet weak var txtChat: UITextField!
+    @IBOutlet weak var chatTextField: UITextField!
     
-    @IBOutlet weak var tblChat: UITableView!
+    @IBOutlet weak var chatTableView: UITableView!
     
-    var messagesArray: [Dictionary<String, String>] = []
+    var messagesArray: [[String : String]] = []
     
-    let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+    let mpcManager = MPCManager.sharedInstance
     
     
     override func viewDidLoad() {
@@ -17,15 +43,15 @@ class ChatViewController: UIViewController, UITextFieldDelegate, UITableViewDele
 
         // Do any additional setup after loading the view.
         
-        tblChat.delegate = self
-        tblChat.dataSource = self
+        self.chatTableView.delegate = self
+        self.chatTableView.dataSource = self
         
-        tblChat.estimatedRowHeight = 60.0
-        tblChat.rowHeight = UITableViewAutomaticDimension
+        self.chatTableView.estimatedRowHeight = 60.0
+        self.chatTableView.rowHeight = UITableViewAutomaticDimension
         
-        txtChat.delegate = self
+        self.chatTextField.delegate = self
     
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "handleMPCReceivedDataWithNotification:", name: "receivedMPCDataNotification", object: nil)
+        self.mpcManager.messageRecievedDelegate = self
     }
 
     override func didReceiveMemoryWarning() {
@@ -49,9 +75,9 @@ class ChatViewController: UIViewController, UITextFieldDelegate, UITableViewDele
     
     @IBAction func endChat(sender: AnyObject) {
         let messageDictionary: [String: String] = ["message": "_end_chat_"]
-        if appDelegate.mpcManager.sendData(dictionaryWithData: messageDictionary, toPeer: appDelegate.mpcManager.session.connectedPeers[0] as MCPeerID){
+        if self.mpcManager.sendData(dictionaryWithData: messageDictionary, toPeer: self.mpcManager.session.connectedPeers[0] as MCPeerID){
             self.dismissViewControllerAnimated(true, completion: { () -> Void in
-                self.appDelegate.mpcManager.session.disconnect()
+                self.mpcManager.session.disconnect()
             })
         }
     }
@@ -65,26 +91,37 @@ class ChatViewController: UIViewController, UITextFieldDelegate, UITableViewDele
     
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return messagesArray.count
+        return self.messagesArray.count
     }
     
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        var cell = tableView.dequeueReusableCellWithIdentifier("idCell") as UITableViewCell
         
-        let currentMessage = messagesArray[indexPath.row] as Dictionary<String, String>
+        guard let cell = tableView.dequeueReusableCellWithIdentifier("idCell") else {
+            assert(true)
+            return UITableViewCell()
+        }
+        
+        guard let currentMessage = self.messagesArray[safe: indexPath.row] else {
+            print(" ")
+            assert(true)
+            return UITableViewCell()
+        }
 
         if let sender = currentMessage["sender"] {
             var senderLabelText: String
             var senderColor: UIColor
             
-            if sender == "self"{
+            if sender == "self" {
+                
                 senderLabelText = "I said:"
                 senderColor = UIColor.purpleColor()
-            }
-            else{
+                
+            } else {
+                
                 senderLabelText = sender + " said:"
                 senderColor = UIColor.orangeColor()
+                
             }
             
             cell.detailTextLabel?.text = senderLabelText
@@ -105,17 +142,32 @@ class ChatViewController: UIViewController, UITextFieldDelegate, UITableViewDele
     func textFieldShouldReturn(textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         
-        let messageDictionary: [String: String] = ["message": textField.text]
+        guard let textFieldText = textField.text else {
+            assert(true)
+            return false
+        }
         
-        if appDelegate.mpcManager.sendData(dictionaryWithData: messageDictionary, toPeer: appDelegate.mpcManager.session.connectedPeers[0] as MCPeerID){
+        
+        let messageDictionary: [String: String] = ["message": textFieldText]
+        
+        guard let connectedPeer = self.mpcManager.session.connectedPeers[safe: 0] else {
             
-            var dictionary: [String: String] = ["sender": "self", "message": textField.text]
-            messagesArray.append(dictionary)
+            print(" ")
+            assert(true)
+            return false
+        }
+
+        if self.mpcManager.sendData(dictionaryWithData: messageDictionary, toPeer: connectedPeer) {
+            
+            let dictionary = ["sender": "self", "message": textFieldText]
+            self.messagesArray.append(dictionary)
             
             self.updateTableview()
-        }
-        else{
+            
+        } else {
+            
             print("Could not send data")
+            
         }
         
         textField.text = ""
@@ -127,56 +179,73 @@ class ChatViewController: UIViewController, UITextFieldDelegate, UITableViewDele
     // MARK: Custom method implementation
     
     func updateTableview(){
-        tblChat.reloadData()
+        chatTableView.reloadData()
         
-        if self.tblChat.contentSize.height > self.tblChat.frame.size.height {
-            tblChat.scrollToRowAtIndexPath(NSIndexPath(forRow: messagesArray.count - 1, inSection: 0), atScrollPosition: UITableViewScrollPosition.Bottom, animated: true)
+        if self.chatTableView.contentSize.height > self.chatTableView.frame.size.height {
+            
+            let indexPathToScrollTo = NSIndexPath(forRow: messagesArray.count - 1, inSection: 0)
+            
+            self.chatTableView.scrollToRowAtIndexPath(indexPathToScrollTo, atScrollPosition: .Bottom, animated: true)
         }
     }
     
     
-    func handleMPCReceivedDataWithNotification(notification: NSNotification) {
-        // Get the dictionary containing the data and the source peer from the notification.
-        let receivedDataDictionary = notification.object as! Dictionary<String, AnyObject>
-        
-        // "Extract" the data and the source peer from the received dictionary.
-        let data = receivedDataDictionary["data"] as? NSData
-        let fromPeer = receivedDataDictionary["fromPeer"] as MCPeerID
-        
+}
+
+extension ChatViewController : MPCManagerRecievedMessageDelegate {
+    func managerRecievedData(data:NSData ,fromPeer:MCPeerID) {
         // Convert the data (NSData) into a Dictionary object.
-        let dataDictionary = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as Dictionary<String, String>
+        let dataDictionary = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! [String : String]
+        
         
         // Check if there's an entry with the "message" key.
         if let message = dataDictionary["message"] {
             // Make sure that the message is other than "_end_chat_".
             if message != "_end_chat_"{
+                
                 // Create a new dictionary and set the sender and the received message to it.
-                var messageDictionary: [String: String] = ["sender": fromPeer.displayName, "message": message]
+                let messageDictionary: [String: String] = ["sender": fromPeer.displayName, "message": message]
                 
                 // Add this dictionary to the messagesArray array.
                 messagesArray.append(messageDictionary)
                 
                 // Reload the tableview data and scroll to the bottom using the main thread.
-                NSOperationQueue.mainQueue().addOperationWithBlock({ () -> Void in
-                    self.updateTableview()
-                })
-            }
-            else{
-                // In this case an "_end_chat_" message was received.
-                // Show an alert view to the user.
-                let alert = UIAlertController(title: "", message: "\(fromPeer.displayName) ended this chat.", preferredStyle: UIAlertControllerStyle.Alert)
-
-                let doneAction: UIAlertAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.Default) { (alertAction) -> Void in
-                    self.appDelegate.mpcManager.session.disconnect()
-                    self.dismissViewControllerAnimated(true, completion: nil)
-                }
+                self.updateTableview()
                 
-                alert.addAction(doneAction)
+            } else {
                 
-                NSOperationQueue.mainQueue().addOperationWithBlock({ () -> Void in
-                    self.presentViewController(alert, animated: true, completion: nil)
-                })
+                
             }
         }
+        
+    }
+    
+    func managerDidRecievedMessage(message: String, fromPeer: MCPeerID) {
+        // Create a new dictionary and set the sender and the received message to it.
+        let messageDictionary: [String: String] = ["sender": fromPeer.displayName, "message": message]
+        
+        // Add this dictionary to the messagesArray array.
+        messagesArray.append(messageDictionary)
+        
+        // Reload the tableview data and scroll to the bottom using the main thread.
+        self.updateTableview()
+    }
+    
+    func managerDidEndChat(fromPeer:MCPeerID) {
+        
+        // In this case an "_end_chat_" message was received.
+        // Show an alert view to the user.
+        let alert = UIAlertController(title: "", message: "\(fromPeer.displayName) ended this chat.", preferredStyle: UIAlertControllerStyle.Alert)
+        
+        let doneAction: UIAlertAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.Default) { (alertAction) -> Void in
+            self.mpcManager.session.disconnect()
+            self.dismissViewControllerAnimated(true, completion: nil)
+        }
+        
+        alert.addAction(doneAction)
+        
+        self.presentViewController(alert, animated: true, completion: nil)
+
     }
 }
+
