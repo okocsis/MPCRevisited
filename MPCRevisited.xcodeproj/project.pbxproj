@@ -13,6 +13,8 @@
 		C04365661A626BA0000E0F15 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C04365651A626BA0000E0F15 /* Images.xcassets */; };
 		C04365691A626BA0000E0F15 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = C04365671A626BA0000E0F15 /* LaunchScreen.xib */; };
 		C04365751A626BA1000E0F15 /* MPCRevisitedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04365741A626BA1000E0F15 /* MPCRevisitedTests.swift */; };
+		C04365811A626D11000E0F15 /* ChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04365801A626D11000E0F15 /* ChatViewController.swift */; };
+		C04365831A627A8C000E0F15 /* MPCManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04365821A627A8C000E0F15 /* MPCManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +38,8 @@
 		C043656E1A626BA1000E0F15 /* MPCRevisitedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MPCRevisitedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C04365731A626BA1000E0F15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C04365741A626BA1000E0F15 /* MPCRevisitedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCRevisitedTests.swift; sourceTree = "<group>"; };
+		C04365801A626D11000E0F15 /* ChatViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatViewController.swift; sourceTree = "<group>"; };
+		C04365821A627A8C000E0F15 /* MPCManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MPCManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +83,8 @@
 			children = (
 				C043655E1A626BA0000E0F15 /* AppDelegate.swift */,
 				C04365601A626BA0000E0F15 /* ViewController.swift */,
+				C04365801A626D11000E0F15 /* ChatViewController.swift */,
+				C04365821A627A8C000E0F15 /* MPCManager.swift */,
 				C04365621A626BA0000E0F15 /* Main.storyboard */,
 				C04365651A626BA0000E0F15 /* Images.xcassets */,
 				C04365671A626BA0000E0F15 /* LaunchScreen.xib */,
@@ -156,6 +162,8 @@
 		C04365511A626BA0000E0F15 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0710;
+				LastSwiftUpdateCheck = 0710;
 				LastUpgradeCheck = 0610;
 				ORGANIZATIONNAME = Appcoda;
 				TargetAttributes = {
@@ -213,6 +221,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				C04365611A626BA0000E0F15 /* ViewController.swift in Sources */,
+				C04365811A626D11000E0F15 /* ChatViewController.swift in Sources */,
+				C04365831A627A8C000E0F15 /* MPCManager.swift in Sources */,
 				C043655F1A626BA0000E0F15 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -337,6 +347,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = MPCRevisited/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -347,6 +358,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = MPCRevisited/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -405,6 +417,7 @@
 				C043657A1A626BA1000E0F15 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		C043657B1A626BA1000E0F15 /* Build configuration list for PBXNativeTarget "MPCRevisitedTests" */ = {
 			isa = XCConfigurationList;
@@ -413,6 +426,7 @@
 				C043657D1A626BA1000E0F15 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
